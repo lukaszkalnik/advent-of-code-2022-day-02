@@ -4,13 +4,16 @@ import okio.Path.Companion.toPath
 fun main() {
     val path = "input.txt".toPath()
     val inputString = FileSystem.SYSTEM.read(path) { readUtf8() }.dropLast(1)
-    val gameStrings = inputString.split("\n").map { line -> line.split(" ") }
-    val games = gameStrings.map { game ->
+    val gameSetupStrings = inputString.split("\n").map { line -> line.split(" ") }
+    val gameSetups = gameSetupStrings.map { game ->
         val opponentChar = game[0].single()
         val playerChar = game[1].single()
-        Game(opponentShapes.getValue(opponentChar), playerShapes.getValue(playerChar))
+        Pair(opponentShapes.getValue(opponentChar), gameResults.getValue(playerChar))
     }
-    val totalPoints = games.sumOf { it.points }
+    val totalPoints = gameSetups.sumOf { (opponentShape, result) ->
+        val shapePoints = opponentShape.playerShape(result).points
+        shapePoints + result.points
+    }
     println(totalPoints)
 }
 
@@ -21,16 +24,30 @@ enum class Shape {
 
     val points: Int = ordinal + 1
 
-    private fun winsWith(other: Shape): Boolean = ordinal == other.ordinal + 1 || (ordinal == 0 && other.ordinal == 2)
+    /**
+     * Returns ordinal of a [Shape], which is [winning] (or not) with this [Shape].
+     */
+    private fun relatedOrdinal(winning: Boolean): Int {
+        val distance = if (winning) 1 else 2
+        return (ordinal + distance) % 3
+    }
 
     /**
-     * Call on a player [Shape] to determine player's [GameResult].
+     * Call on an opponent [Shape] to determine player shape to achieve [result].
      */
-    fun gameResult(opponentShape: Shape): GameResult =
-        when {
-            this == opponentShape -> GameResult.DRAW
-            winsWith(opponentShape) -> GameResult.PLAYER_WON
-            else -> GameResult.PLAYER_LOST
+    fun playerShape(result: GameResult): Shape =
+        when (result) {
+            GameResult.DRAW -> this
+
+            GameResult.PLAYER_WON -> {
+                val winningOrdinal = relatedOrdinal(winning = true)
+                Shape.values()[winningOrdinal]
+            }
+
+            GameResult.PLAYER_LOST -> {
+                val losingOrdinal = relatedOrdinal(winning = false)
+                Shape.values()[losingOrdinal]
+            }
         }
 }
 
@@ -40,16 +57,11 @@ val opponentShapes = mapOf(
     'C' to Shape.SCISSORS,
 )
 
-val playerShapes = mapOf(
-    'X' to Shape.ROCK,
-    'Y' to Shape.PAPER,
-    'Z' to Shape.SCISSORS,
+val gameResults = mapOf(
+    'X' to GameResult.PLAYER_LOST,
+    'Y' to GameResult.DRAW,
+    'Z' to GameResult.PLAYER_WON,
 )
-
-data class Game(val opponentShape: Shape, val playerShape: Shape) {
-
-    val points: Int = playerShape.points + playerShape.gameResult(opponentShape).points
-}
 
 enum class GameResult {
     PLAYER_LOST,
