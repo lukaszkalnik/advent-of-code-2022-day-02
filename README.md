@@ -20,3 +20,4 @@ per game and also depending on the shape which the player chose.
   scissors (2)).
 * Total game points can be calculated in the `Game` class based on the player's shape points and the calculated game
   result points.
+* There is `List.sumOf { }` as shorthand for `List.map { }.sum()`
