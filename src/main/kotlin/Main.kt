@@ -10,7 +10,7 @@ fun main() {
         val playerChar = game[1].single()
         Game(opponentShapes.getValue(opponentChar), playerShapes.getValue(playerChar))
     }
-    val totalPoints = games.map { it.points }.sum()
+    val totalPoints = games.sumOf { it.points }
     println(totalPoints)
 }
 
