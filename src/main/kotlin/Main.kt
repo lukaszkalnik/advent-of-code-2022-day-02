@@ -21,7 +21,7 @@ enum class Shape {
 
     val points: Int = ordinal + 1
 
-    private fun winsWith(other: Shape): Boolean = ordinal == other.ordinal + 1 || (ordinal == 0 && other.ordinal == 2)
+    private fun winsWith(other: Shape): Boolean = ordinal == (other.ordinal + 1) % 3
 
     /**
      * Call on a player [Shape] to determine player's [GameResult].
